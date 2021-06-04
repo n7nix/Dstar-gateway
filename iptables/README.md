@@ -1,22 +1,12 @@
-### iptable entry descriptions
+### iptable setup for D-Star Gateway
 
-* Chromium IGMPv2 multicast protocol
+##### NAT
 ```
-iptables -A OUTPUT -o "$device" -d 224.0.0.22 -p igmp -j DROP
+-A PREROUTING -m conntrack --ctorigdst $SOURCE_ADDRESS -j DNAT --to-destination $DESTINATION_ADDRESS
+-A POSTROUTING -m conntrack --ctorigsrc $DESTINATION_ADDRESS -j SNAT --to-source $SOURCE_ADDRESS
 ```
-
-* Bonjour/mDNS request from Avahi daemon
+##### FILTER
 ```
-iptables -A OUTPUT -o "$device" -d 224.0.0.251 -p udp -m udp --dport 5353 -j DROP
-```
-
-* Simple Service Discovery Protocol (SSDP) for uPNP detection
-```
-iptables -A OUTPUT -o "$device" -d 239.255.255.250 -p udp -m udp  -j DROP
-```
-* Canon-mfnp port 8610 and Canon-bjnp port 8612
-  * [CUPS - Excessive Amounts of UDP Multicast Traffic for BJNP](https://bugs.launchpad.net/ubuntu/+source/cups/+bug/1671974)
-```
-iptables -A OUTPUT -o "$device" -p udp -m udp --dport 8610 -j DROP
-iptables -A OUTPUT -o "$device" -p udp -m udp --dport 8612 -j DROP
+-A FORWARD -i wg0 -j ACCEPT
+-A FORWARD -o wg0 -j ACCEPT
 ```
