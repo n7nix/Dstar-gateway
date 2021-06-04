@@ -2,7 +2,7 @@
 #
 # iptable-check.sh
 #
-# Verify that iptables has been configured for AX.25 operation
+# Verify that iptables has been configured for VPN operation
 # If iptables has not been configured then add some rules to the tables
 
 DEBUG=
@@ -167,7 +167,7 @@ if [ -e "$rules_file" ] && [ $rule_count -lt 4 ] ; then
     CREATE_IPTABLES=true
 fi
 
-write_rules
+# write_rules
 
 if [ ! -z "$DEBUG" ] ; then
     IPTABLES_FILES="$rules_file $hook_file"
