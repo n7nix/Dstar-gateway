@@ -14,8 +14,8 @@ function is_ifaceup() {
 for device in "wg0" ; do
     echo "Using device: $device"
     is_ifaceup "$device"
-    # Setup NAT (PRE/POST routing) & FILTER (FORWARD) rules
     if [ "$?" -eq 0 ] ; then
+        # Setup NAT (PRE/POST routing) & FILTER (FORWARD) rules
         iptables -A PREROUTING -m conntrack --ctorigdst 198.163.74.21 -j DNAT --to-destination 192.168.99.2
         iptables -A POSTROUTING -m conntrack --ctorigsrc 192.168.99.2 -j SNAT --to-source 198.163.74.21
         iptables -A FORWARD -i wg0 -j ACCEPT
