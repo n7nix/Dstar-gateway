@@ -6,6 +6,8 @@ PKGLIST="iptables iptables-persistent"
 
 USER=
 BIN_FILES="iptable-check.sh iptable-flush.sh iptable-up.sh"
+rules_file="/etc/iptables/rules.ipv4.vpn"
+hook_file="/lib/dhcpcd/dhcpcd-hooks/70-ipv4.vpn"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -20,6 +22,35 @@ return $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed" >/
 function is_ifaceup() {
     interface=$1
     ip a show $interface up > /dev/null  2>&1
+}
+
+# ===== get_rule_count
+# sets variable rule_count
+
+function get_rule_count() {
+    rule_count=$(grep -c "\-A FORWARD\|\-A .*ROUTING" $rules_file)
+}
+
+# ===== write iptables rules
+
+function write_rules() {
+    if [ "$CREATE_IPTABLES" = "true" ] ; then
+
+        sudo /bin/bash $BIN_DIR/iptable-flush.sh
+
+        # Setup some iptable rules
+        echo
+        echo "== setup iptables"
+        sudo /bin/bash $BIN_DIR/iptable-up.sh
+        sudo sh -c "iptables-save > $rules_file"
+
+            echo "Setup restore command"
+            sudo tee $hook_file > /dev/null <<EOF
+iptables-restore < $rules_file
+EOF
+	get_rule_count
+        echo "Number of VPN rules now: $rule_count"
+    fi
 }
 
 # ===== function get_user
@@ -111,7 +142,7 @@ done
 
 # use iptables-persistent
 CREATE_IPTABLES=false
-IPTABLES_FILES="/etc/iptables/rules.ipv4.ax25 /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25"
+IPTABLES_FILES="$rules_file $hook_file"
 for ipt_file in `echo ${IPTABLES_FILES}` ; do
 
    if [ -f $ipt_file ] ; then
@@ -122,36 +153,16 @@ for ipt_file in `echo ${IPTABLES_FILES}` ; do
    fi
 done
 
-echo " == Check to see if ax.25 devices are up"
+echo " == Check to see if VPN devices are up"
+
 is_ifaceup wg0
 wg0_up="$?"
-
 if [ "$wg0_up" -ne 0 ] ; then
-    echo "$(date "+%Y %m %d %T %Z"): $scriptname: iptables installed but NOT configured, no AX.25 devices available" | sudo tee -a $UDR_INSTALL_LOGFILE
+    echo "$(date "+%Y %m %d %T %Z"): $scriptname: iptables installed but NOT configured, no VPN devices available" | sudo tee -a $UDR_INSTALL_LOGFILE
     exit 0
 fi
 
-
-if [ "$CREATE_IPTABLES" = "true" ] ; then
-
-    # Setup some iptable rules
-    # 224.0.0.22
-    #  - used for the IGMPv3 protocol.
-    # 239.255.255.250:1900
-    #  - Chromecast
-    #  - traffic is discovery multicast traffic that occurs every 2 minutes from the system
-    #  - UPnP (Universal Plug and Play)/SSDP (Simple Service Discovery Protocol) by various vendors to advertise the capabilities of (or discover) devices
-    echo
-    echo "== setup iptables"
-    sudo $BIN_DIR/iptable-up.sh
-
-    sh -c "iptables-save > /etc/iptables/rules.ipv4.ax25"
-
-    sudo cat  > /lib/dhcpcd/dhcpcd-hooks/70-ipv4.ax25 <<EOF
-iptables-restore < /etc/iptables/rules.ipv4.ax25
-EOF
-
-fi
+write_rules
 
 echo
 echo "$(date "+%Y %m %d %T %Z"): $scriptname: iptables install/config script FINISHED" | sudo tee -a $UDR_INSTALL_LOGFILE
