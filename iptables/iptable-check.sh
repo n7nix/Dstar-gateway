@@ -139,7 +139,14 @@ echo "== List current iptables rules"
 # -n numeric: IP addresses & port numbers are printed in numeric format
 # -x exact: display exact value of the packet & byte counters instead
 #    of rounded number
+# -t Netfilter tale (filter, nat, mangle, raw or security)
+echo
+echo " ***** Filter table"
 $SU iptables -L -nvx
+
+echo
+echo " ***** NAT table"
+$SU iptables --table nat -L -nvx
 
 rule_count=0
 if [ -e "$rules_file" ] ; then
