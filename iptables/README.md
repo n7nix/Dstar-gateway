@@ -18,12 +18,12 @@
 * For debug only should never have to do this.
 * For debug do a flush (_iptable-flush.sh_)before running.
 
-### Two sets of rules
 ###### iptable_install.sh
 
 * Initial install to create files and install rules.
 * For reference only since everything was manually installed.
 
+### Two sets of rules
 
 ##### NAT
 ```
