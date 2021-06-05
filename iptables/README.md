@@ -2,7 +2,7 @@
 #### script descriptions
 
 ###### iptable-check.sh
-* List filter rules and check for hook & rules files
+* List FILTER & NAT rules and check for hook & rules files
 * passive, no files written or rules changed ie. safe to run
 * use -d to dump hook & rules file
 
@@ -13,10 +13,11 @@
 * Flush all iptables rules. Handy when things aren't working
 
 ###### iptable-up.sh
-* Install iptables rules
-  * Edit th is script with required rules
-* For debug only should never have to do this.
-* For debug do a flush (_iptable-flush.sh_)before running.
+* Convenient way to install iptables rules
+  * Edit this script with required rules
+* For DEBUG:
+  * For debugging rules only should never have to do this.
+  * Do a flush (_iptable-flush.sh_) before running this script.
 
 ###### iptable_install.sh
 
@@ -35,6 +36,7 @@
 -A FORWARD -i wg0 -j ACCEPT
 -A FORWARD -o wg0 -j ACCEPT
 ```
+
 #### Debugging
 
 ```
