@@ -131,7 +131,7 @@ else
 fi
 BIN_DIR="/home/$USER/bin"
 
-echo "== List current iptables rules"
+echo "==== List active iptables rules ===="
 # List iptables rules
 #
 # -L list: List all rules in all chains
@@ -141,7 +141,7 @@ echo "== List current iptables rules"
 #    of rounded number
 # -t Netfilter tale (filter, nat, mangle, raw or security)
 echo
-echo " ***** Filter table"
+echo " ***** FILTER table"
 $SU iptables -L -nvx
 
 echo
