@@ -44,8 +44,7 @@ EOF
         fi
 	get_rule_count
         echo "Number of VPN rules now: $rule_count"
-fi
-
+    fi
 }
 
 # ===== function get_user
@@ -155,9 +154,10 @@ fi
 echo
 echo "Number of VPN iptables rules found: $rule_count"
 
-# Check for required iptables files
-#
 CREATE_IPTABLES=false
+
+# Check for required iptables files
+
 IPTABLES_FILES="$rules_file $hook_file"
 for ipt_file in `echo ${IPTABLES_FILES}` ; do
 
