@@ -8,7 +8,7 @@
 #### ATOM script descriptions
 
 ###### wg-status.sh
-* Location:
+* Location: /home/kennyr/bin
 * Displays:
   * systemd status for wg-quick@wg0 service
   * WireGuard Link status
