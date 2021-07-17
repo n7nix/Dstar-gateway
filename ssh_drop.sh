@@ -3,7 +3,7 @@
 # Send an email when ssh connection is lost
 #
 #  RPi: ssh $USER@$RPI_IP
-#  Atom: ssh -vv -p 50022 $USER@$ATOM_IP
+#  Atom: ssh -vv -p $ATOM_PORTNUM $USER@$ATOM_IP
 #
 # Takes USER name as only argument
 #  defaults to USER=gunn
