@@ -2,8 +2,8 @@
 #
 # Send an email when ssh connection is lost
 #
-#  RPi: ssh gunn@198.163.74.20
-#  Atom: ssh -vv -p 50022 gunn@198.163.74.21
+#  RPi: ssh $USER@$RPI_IP
+#  Atom: ssh -vv -p 50022 $USER@$ATOM_IP
 #
 # Takes USER name as only argument
 #  defaults to USER=gunn
@@ -20,8 +20,13 @@ if [[ $# -gt 0 ]] ; then
     USER="$1"
 fi
 
-RPI_LOGIN="ssh $USER@198.163.74.20"
-ATOM_LOGIN="ssh -vv -p 50022 $USER @198.163.74.21"
+ATOM_PORTNUM=
+ATOM_IP=
+ATOM_LOGIN="ssh -vv -p $ATOM_PORTNUM ${USER}@$ATOM_IP"
+
+RPI_IP=
+RPI_LOGIN="ssh ${USER}@$RPI_IP"
+
 TEST_LOGIN="ssh pi@10.0.42.138"
 
 $TEST_LOGIN
