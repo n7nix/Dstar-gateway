@@ -79,6 +79,7 @@ if [[ $EUID != 0 ]] ; then
     WG="sudo wg"
     IP="sudo ip"
     LOGGER="sudo logger"
+    echo "WARNING: if running from crontab need to run as root"
 fi
 
 while [[ $# -gt 0 ]] ; do
