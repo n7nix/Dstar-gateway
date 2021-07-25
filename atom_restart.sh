@@ -59,8 +59,8 @@ function wg_test() {
             echo "$(date): FAILURE on string: $handshake_str, handshake_time: $handshake_time" | tee -a $local_log_file
 	    retcode=1
 	else
-            echo "$(date): Found OK case on minutes: $minutes_str" | tee -a $local_log_file
-            echo "$(date): OK string: $handshake_str, handshake_time: $handshake_time" | tee -a $local_log_file
+            dbgecho "$(date): Found OK case on minutes: $minutes_str" | tee -a $local_log_file
+            dbgecho "$(date): OK string: $handshake_str, handshake_time: $handshake_time" | tee -a $local_log_file
 	fi
     fi
 
