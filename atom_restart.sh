@@ -39,9 +39,9 @@ function ping_fail() {
 function wg_test() {
 #    $WG show $WG_IF | grep "latest handshake"
 #    $WG show wg0 | grep "latest handshake" | cut -f2 -d":" | cut -f1 -d"," | sed 's/^[ \t]*//'
-    handshare_str =$($WG show wg0 | grep "latest handshake" | cut -f2 -d":" | sed 's/^[ \t]*//')
+    handshake_str=$($WG show wg0 | grep "latest handshake" | cut -f2 -d":" | sed 's/^[ \t]*//')
     failure_tst=$($WG show wg0 | grep "latest handshake" | cut -f2 -d":" | sed 's/^[ \t]*//' | cut -f2 ' ')
-    if [ $failure_tst == "minutes," ] || [ $failure_tst == "minutes," ] ; then
+    if [ $failure_tst = "minutes," ] || [ $failure_tst = "minutes," ] ; then
 
         echo "Found FAILURE case: $failure_tst" | tee -a $local_log_file
 	echo "FAILURE on string: $handshare_str" | tee -a $local_log_file
