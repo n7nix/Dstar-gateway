@@ -28,17 +28,20 @@ function logmsg() {
     "${LOGGER}" -t "${scriptname}(${VERSION})" -i -p daemon.info -s "${1}" >> $local_log_file 2>&1
 }
 
-# ===== function ping_fail
+# ===== function ping_test
 
-function ping_fail() {
-    ping -I $WG_IF -c 1 -W 1 -q 192.168.99.1 ; echo $?
+function ping_test() {
+    ping -I $WG_IF -c 1 -W 1 -q 192.168.99.1
+    return $?
 }
 
 # ===== function wg_test
 # Failure criteria is if "latest handshake" string contains hour, hours
 # or just minutes, seconds and minutes is > 2
+# Returns 0 on success, 1 on failure
 
 function wg_test() {
+    # Set successful return code
     retcode=0
     handshake_str=$($WG show $WG_IF | grep "latest handshake")
 #    $WG show wg0 | grep "latest handshake" | cut -f2 -d":" | cut -f1 -d"," | sed 's/^[ \t]*//'
@@ -76,7 +79,7 @@ function wg_test() {
 function if_dn_up() {
     if [ -z "$DEBUG" ] ; then
         $IP link set $ETH_IF down
-        sleep 20
+        sleep 10
         $IP link set $ETH_IF up
     fi
     logmsg "Ethernet interface: $ETH_IF, down up"
@@ -116,15 +119,22 @@ if [[ $EUID != 0 ]] ; then
     echo "WARNING: if running from crontab need to run as root"
 fi
 
+# Get pid of parent process
+PPPID=$(ps h -o ppid= $PPID)
+# get name of parent process
+P_COMMAND=$(ps h -o %c $PPPID)
+
+echo "$(date): Start from parent: $P_COMMAND" | tee -a $local_log_file
+
 if [ -e "/tmp/atom_restart*" ] ; then
     echo "Found atom restart tmp file: $(ls /tmp/atom_restart*)"
     # debug only, remove
-    rm /tmp/atom_restart*
+#    rm /tmp/atom_restart*
 fi
 
 # Make a temporary file with current time stamp
 tmpfile=$(mktemp /tmp/atom_restart.XXXXXX)
-echo "Called from rsyslog at $(date)" >> $tmpfile
+echo "Called from $P_COMMAND at $(date)" >> $tmpfile
 
 # Check if local log directory exists.
 # Use this for debugging
@@ -157,17 +167,22 @@ done
 # Temporary DEBUG
 while true ; do
     wg_test
-    sleep 2
+    wg_test_ret=$?
+
+    ping_test
+    ping_test_ret=$?
+
+    if [ $ping_test_ret != 0 ] || [ $wg_test_ret != 0 ] ; then
+        logmsg "VPN connection dropped"
+        if_dn_up
+        dashb_restart
+	break
+    fi
+    sleep 3
+
 done
 
+logmsg "VPN connection has been reset, check logs"
+
 exit
-
-
-if ping_fail || wg_test ; then
-    logmsg "VPN connection dropped"
-    if_dn_up
-    dashb_restart
-else
-    logmsg "VPN connection up"
-fi
 
