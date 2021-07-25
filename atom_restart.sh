@@ -98,7 +98,7 @@ echo "Called from rsyslog at $(date)" >> $tmpfile
 # Check if local log directory exists.
 # Use this for debugging
 if [ ! -d "$local_log_dir" ] ; then
-   mkdir -P $local_log_dir
+   mkdir -p $local_log_dir
 fi
 
 wg_test
