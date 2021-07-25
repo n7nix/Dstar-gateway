@@ -35,8 +35,11 @@ function ping_fail() {
 }
 
 # ===== function wg_test
+# Failure criteria is if "latest handshake" string contains hour, hours
+# or just minutes, seconds and minutes is > 2
 
 function wg_test() {
+    retcode=0
     handshake_str=$($WG show $WG_IF | grep "latest handshake")
 #    $WG show wg0 | grep "latest handshake" | cut -f2 -d":" | cut -f1 -d"," | sed 's/^[ \t]*//'
     handshake_time=$(echo "$handshake_str" | cut -f2 -d":" | sed 's/^[ \t]*//')
@@ -46,16 +49,25 @@ function wg_test() {
     dbgecho "handshake time: $handshake_time"
     dbgecho "failure test: $failure_tst"
 
-    if [ "$failure_tst" = "minutes," ] || [ "$failure_tst" = "hour," ] || [ "$failure_tst" = "hours," ] ; then
-
-        echo "$(date): Found FAILURE case: $failure_tst" | tee -a $local_log_file
-	echo "$(date): FAILURE on string: $handshake_str, handshake_time: $handshake_time" | tee -a $local_log_file
-
-    else
-
-        dbgecho "OK Test: $failure_tst" | tee -a $local_log_file
+    if [ "$failure_tst" = "minutes," ] ; then
+        minutes_str=$(echo "$handshake_time"| cut -f1 -d' ')
+	if (( $minutes_str > 2 )) ; then
+            echo "$(date): Found FAILURE case on minutes: $minutes_str" | tee -a $local_log_file
+            echo "$(date): FAILURE on string: $handshake_str, handshake_time: $handshake_time" | tee -a $local_log_file
+	    retcode=1
+	else
+            echo "$(date): Found OK case on minutes: $minutes_str" | tee -a $local_log_file
+            echo "$(date): OK string: $handshake_str, handshake_time: $handshake_time" | tee -a $local_log_file
+	fi
     fi
 
+    if [ "$failure_tst" = "hour," ] || [ "$failure_tst" = "hours," ] ; then
+        echo "$(date): Found FAILURE case: $failure_tst" | tee -a $local_log_file
+	echo "$(date): FAILURE on string: $handshake_str, handshake_time: $handshake_time" | tee -a $local_log_file
+        retcode=1
+    fi
+
+    return $retcode
 }
 
 # ===== function if_dn_up
