@@ -4,10 +4,12 @@
 #
 # Check if the VPN connection is still working and if not restart Eth
 # interface & DStar dashboard.
-DEBUG=
+DEBUG=1
 
 scriptname="`basename $0`"
 VERSION="1.0"
+local_log_dir=$HOME/log/
+local_log_file=$local_log_dir/logfile
 
 WG_IF="wg0"
 ETH_IF="enp4s0"
@@ -15,13 +17,15 @@ ETH_IF="enp4s0"
 SYSTEMCTL="systemctl"
 WG="wg"
 IP="ip"
-LOGGER="logger"
+LOGGER="/usr/bin/logger"
 
+function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
 # ===== function logmsg
+# Put message in a local file as well as syslog
 
 function logmsg() {
-    "${LOGGER}" -t "${scriptname}(${VERSION})" -i -p daemon.info "${1}"
+    "${LOGGER}" -t "${scriptname}(${VERSION})" -i -p daemon.info -s "${1}" >> $local_log_file 2>&1
 }
 
 # ===== function ping_fail
@@ -30,10 +34,11 @@ function ping_fail() {
     ping -I $WG_IF -c 1 -W 1 -q 192.168.99.1 ; echo $?
 }
 
-# ===== function wg_fail
+# ===== function wg_test
 
-function wg_fail() {
-    $WG show $WG_IF | grep "latest handshake"
+function wg_test() {
+#    $WG show $WG_IF | grep "latest handshake"
+    $WG show wg0 | grep "latest handshake" | cut -f2 -d":" | cut -f1 -d"," | sed 's/^[ \t]*//'
 }
 
 # ===== function if_dn_up
@@ -82,6 +87,25 @@ if [[ $EUID != 0 ]] ; then
     echo "WARNING: if running from crontab need to run as root"
 fi
 
+if [ -e "/tmp/atom_restart*" ] ; then
+    echo "Found atom restart tmp file: $(ls /tmp/atom_restart*)"
+fi
+
+# Make a temporary file with current time stamp
+tmpfile=$(mktemp /tmp/atom_restart.XXXXXX)
+echo "Called from rsyslog at $(date)" >> $tmpfile
+
+# Check if local log directory exists.
+# Use this for debugging
+if [ ! -d "$local_log_dir" ] ; then
+   mkdir -P $local_log_dir
+fi
+
+wg_test
+
+exit
+
+
 while [[ $# -gt 0 ]] ; do
     APP_ARG="$1"
 
@@ -104,10 +128,11 @@ while [[ $# -gt 0 ]] ; do
 shift # past argument
 done
 
-if ping_fail || wg_fail ; then
+if ping_fail || wg_test ; then
     logmsg "VPN connection dropped"
     if_dn_up
     dashb_restart
 else
     logmsg "VPN connection up"
 fi
+
