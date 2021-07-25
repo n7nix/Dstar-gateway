@@ -31,7 +31,7 @@ function logmsg() {
 # ===== function ping_test
 
 function ping_test() {
-    ping -I $WG_IF -c 1 -W 1 -q 192.168.99.1
+    ping -I $WG_IF -c 1 -W 1 -q 192.168.99.1 > /dev/null
     return $?
 }
 
@@ -124,7 +124,17 @@ PPPID=$(ps h -o ppid= $PPID)
 # get name of parent process
 P_COMMAND=$(ps h -o %c $PPPID)
 
-echo "$(date): Start from parent: $P_COMMAND" | tee -a $local_log_file
+# Check if local log directory exists.
+# Use this for debugging
+if [ ! -d "$local_log_dir" ] ; then
+   mkdir -p $local_log_dir
+fi
+
+{
+echo
+echo "$(date): Start from parent: $P_COMMAND"
+echo
+} | tee -a $local_log_file
 
 if [ -e "/tmp/atom_restart*" ] ; then
     echo "Found atom restart tmp file: $(ls /tmp/atom_restart*)"
@@ -135,12 +145,6 @@ fi
 # Make a temporary file with current time stamp
 tmpfile=$(mktemp /tmp/atom_restart.XXXXXX)
 echo "Called from $P_COMMAND at $(date)" >> $tmpfile
-
-# Check if local log directory exists.
-# Use this for debugging
-if [ ! -d "$local_log_dir" ] ; then
-   mkdir -p $local_log_dir
-fi
 
 while [[ $# -gt 0 ]] ; do
     APP_ARG="$1"
@@ -184,5 +188,4 @@ done
 
 logmsg "VPN connection has been reset, check logs"
 
-exit
-
+exit 0
