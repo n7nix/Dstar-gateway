@@ -89,6 +89,8 @@ fi
 
 if [ -e "/tmp/atom_restart*" ] ; then
     echo "Found atom restart tmp file: $(ls /tmp/atom_restart*)"
+    # debug only, remove
+    rm /tmp/atom_restart*
 fi
 
 # Make a temporary file with current time stamp
