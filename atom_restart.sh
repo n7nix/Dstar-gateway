@@ -45,10 +45,10 @@ function wg_test() {
     dbgecho "handshake: $handshake_time"
     dbgecho "failure test: $failure_tst"
 
-    if [ "$failure_tst" = "minutes," ] || [ "$failure_tst" = "minutes," ] ; then
+    if [ "$failure_tst" = "minutes," ] || [ "$failure_tst" = "hour," ] || [ "$failure_tst" = "hours," ] ; then
 
         echo "Found FAILURE case: $failure_tst" | tee -a $local_log_file
-	echo "FAILURE on string: $handshake_str" | tee -a $local_log_file
+	echo "FAILURE on string: $handshake_str, handshake_time: $handshake_time" | tee -a $local_log_file
 
     else
 
@@ -119,14 +119,6 @@ if [ ! -d "$local_log_dir" ] ; then
    mkdir -p $local_log_dir
 fi
 
-while true ; do
-    wg_test
-    sleep 2
-done
-
-exit
-
-
 while [[ $# -gt 0 ]] ; do
     APP_ARG="$1"
 
@@ -148,6 +140,15 @@ while [[ $# -gt 0 ]] ; do
 
 shift # past argument
 done
+
+# Temporary DEBUG
+while true ; do
+    wg_test
+    sleep 2
+done
+
+exit
+
 
 if ping_fail || wg_test ; then
     logmsg "VPN connection dropped"
