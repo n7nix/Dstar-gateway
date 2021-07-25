@@ -40,15 +40,16 @@ function wg_test() {
     handshake_str=$($WG show $WG_IF | grep "latest handshake")
 #    $WG show wg0 | grep "latest handshake" | cut -f2 -d":" | cut -f1 -d"," | sed 's/^[ \t]*//'
     handshake_time=$(echo "$handshake_str" | cut -f2 -d":" | sed 's/^[ \t]*//')
-    failure_tst=$(cut -f2 -d' ' <<< "$handshake_str")
+    failure_tst=$(echo "$handshake_time"| cut -f2 -d' ')
 
-    dbgecho "handshake: $handshake_time"
+    dbgecho "handshake: $handshake_str"
+    dbgecho "handshake time: $handshake_time"
     dbgecho "failure test: $failure_tst"
 
     if [ "$failure_tst" = "minutes," ] || [ "$failure_tst" = "hour," ] || [ "$failure_tst" = "hours," ] ; then
 
-        echo "Found FAILURE case: $failure_tst" | tee -a $local_log_file
-	echo "FAILURE on string: $handshake_str, handshake_time: $handshake_time" | tee -a $local_log_file
+        echo "$(date): Found FAILURE case: $failure_tst" | tee -a $local_log_file
+	echo "$(date): FAILURE on string: $handshake_str, handshake_time: $handshake_time" | tee -a $local_log_file
 
     else
 
