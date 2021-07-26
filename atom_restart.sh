@@ -85,7 +85,7 @@ function criteria_test() {
     ping_test
     ping_test_ret=$?
 
-    return (( ping_test_ret + wg_test_ret ))
+    return $(( ping_test_ret + wg_test_ret ))
 }
 
 # ===== function if_dn_up
