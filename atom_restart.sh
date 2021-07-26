@@ -73,6 +73,21 @@ function wg_test() {
     return $retcode
 }
 
+# ===== function criteria_test
+# Return accumulated result of all tests
+# Returns 0 on success
+
+function criteria_test() {
+
+    wg_test
+    wg_test_ret=$?
+
+    ping_test
+    ping_test_ret=$?
+
+    return (( ping_test_ret + wg_test_ret ))
+}
+
 # ===== function if_dn_up
 # Take the Ethernet connection down then back up
 
@@ -170,19 +185,26 @@ done
 
 # Temporary DEBUG
 while true ; do
-    wg_test
-    wg_test_ret=$?
 
-    ping_test
-    ping_test_ret=$?
-
-    if [ $ping_test_ret != 0 ] || [ $wg_test_ret != 0 ] ; then
+    criteria_test
+    criteria_test_ret=$?
+    if [ $criteria_test_ret != 0 ] ; then
         logmsg "VPN connection dropped"
         if_dn_up
         dashb_restart
+	sleep 2
+        criteria_test
+        criteria_test_ret=$?
+        if [ $criteria_test_ret == 0 ] ; then
+            logmsg "VPN connection after connection reset: UP"
+	    # Get rid of semaphore file
+            rm /tmp/atom_restart*
+        else
+            logmsg "VPN connection after connection reset: FAILED"
+	fi
 	break
     fi
-    sleep 3
+    sleep 4
 
 done
 
