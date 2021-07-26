@@ -31,7 +31,7 @@ function logmsg() {
 # ===== function ping_test
 
 function ping_test() {
-    ping -I $WG_IF -c 1 -W 1 -q 192.168.99.1 > /dev/null
+    /usr/bin/ping -I $WG_IF -c 1 -W 1 -q 192.168.99.1 > /dev/null
     return $?
 }
 
@@ -190,9 +190,14 @@ while true ; do
     criteria_test_ret=$?
     if [ $criteria_test_ret != 0 ] ; then
         logmsg "VPN connection dropped"
+
         if_dn_up
         dashb_restart
-	sleep 2
+	sleep 10
+
+	/usr/bin/wg-quick up "${WG_IF}"
+	sleep 5
+
         criteria_test
         criteria_test_ret=$?
         if [ $criteria_test_ret == 0 ] ; then
@@ -204,7 +209,7 @@ while true ; do
 	fi
 	break
     fi
-    sleep 4
+    sleep 10
 
 done
 
