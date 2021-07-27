@@ -7,7 +7,7 @@
 # DEBUG=1
 
 scriptname="`basename $0`"
-VERSION="1.0"
+VERSION="1.1"
 local_log_dir=$HOME/log/
 local_log_file=$local_log_dir/logfile
 
