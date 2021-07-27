@@ -37,8 +37,8 @@ function ping_test() {
 
 # ===== function wg_test
 # Failure criteria is if "latest handshake" string contains hour, hours
-# or just minutes, seconds and minutes is > 2
-# Returns 0 on success, 1 on failure
+# or just "minutes, seconds" and "minutes" is > 2
+#  Return 0 on success, 1 on failure
 
 function wg_test() {
     # Set successful return code
@@ -100,11 +100,31 @@ function if_dn_up() {
     logmsg "Ethernet interface: $ETH_IF, down up"
 }
 
+# ===== function wait_for_link
+
+function wait_for_link() {
+
+    retcode=1
+    link_state="$(ip link show $ETH_IF |  grep -oP '(?<=state )[^ ]*')"
+    begin_sec=$SECONDS
+
+    while [ $((SECONDS-begin_sec)) -lt 25 ] && [ "$link_state" != "UP" ]  ; do
+        link_state="$(ip link show $ETH_IF |  grep -oP '(?<=state )[^ ]*')"
+    done
+    if [ $link_stat = "UP" ] ; then
+        retcode=0
+    fi
+    return $retcode
+}
+
 # ===== function dashb_restart
 
 function dashb_restart() {
     if [ -z "$DEBUG" ] ; then
-        $SYSTEMCTL restart ircnodedashboard.service
+#        $SYSTEMCTL restart ircnodedashboard.service
+        # Preference would be to only restart ircddbgateway service and
+        #  leave the dashboard alone.
+        $SYSTEMCTL restart ircddbgatewayd.service
     fi
     logmsg "Dashboard service restarted"
 }
@@ -204,6 +224,12 @@ while true ; do
 
         if_dn_up
 	sleep 5
+
+	# Wait until link is back up
+        wait_for_link
+	if [ "$?" != 0 ] ; then
+            logmsg "Timeout waiting for link on interface: $ETH_IF"
+	fi
 
         dashb_restart
 	sleep 5
