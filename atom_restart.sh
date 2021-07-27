@@ -109,6 +109,14 @@ function dashb_restart() {
     logmsg "Dashboard service restarted"
 }
 
+# ===== function wg_up
+# Do a quick up on the wire guard interface
+
+function wg_up() {
+    /usr/bin/wg-quick up "${WG_IF}"
+    logmsg "Wire guard quick up"
+}
+
 # ===== function usage
 
 usage () {
@@ -191,23 +199,27 @@ while true ; do
     if [ $criteria_test_ret != 0 ] ; then
         logmsg "VPN connection dropped"
 
-        if_dn_up
-        dashb_restart
-	sleep 10
+        wg_up
+	sleep 20
 
-	/usr/bin/wg-quick up "${WG_IF}"
+        if_dn_up
+	sleep 5
+
+        dashb_restart
 	sleep 5
 
         criteria_test
         criteria_test_ret=$?
         if [ $criteria_test_ret == 0 ] ; then
             logmsg "VPN connection after connection reset: UP"
-	    # Get rid of semaphore file
+	    # Get rid of any semaphore files
             rm /tmp/atom_restart*
+            break
+
         else
             logmsg "VPN connection after connection reset: FAILED"
+	    sleep 50
 	fi
-	break
     fi
     sleep 10
 
