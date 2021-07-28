@@ -94,13 +94,16 @@ function criteria_test() {
 function if_dn_up() {
     if [ -z "$DEBUG" ] ; then
         $IP link set $ETH_IF down
-        sleep 10
+        logmsg "Ethernet interface: $ETH_IF, set DOWN"
+        sleep 15
         $IP link set $ETH_IF up
+        logmsg "Ethernet interface: $ETH_IF, set UP"
     fi
     logmsg "Ethernet interface: $ETH_IF, down up"
 }
 
 # ===== function wait_for_link
+# Wait for link state to transistion from DOWN to UP
 
 function wait_for_link() {
 
@@ -111,8 +114,10 @@ function wait_for_link() {
     while [ $((SECONDS-begin_sec)) -lt 25 ] && [ "$link_state" != "UP" ]  ; do
         link_state="$(ip link show $ETH_IF |  grep -oP '(?<=state )[^ ]*')"
     done
-    if [ $link_stat = "UP" ] ; then
+    if [ "$link_state" = "UP" ] ; then
         retcode=0
+    else
+	logmsg "DEBUG: Link not UP after ((SECONDS-begin_sec)) seconds: $(ip link show $ETH_IF)"
     fi
     return $retcode
 }
@@ -120,11 +125,13 @@ function wait_for_link() {
 # ===== function dashb_restart
 
 function dashb_restart() {
+    # Testing whether just restarting ircddgbgatewayd service works
+    sysd_service="ircnodedashboard.serviceq"
+    # sysd_service="ircddbgatewayd.service"
     if [ -z "$DEBUG" ] ; then
-#        $SYSTEMCTL restart ircnodedashboard.service
         # Preference would be to only restart ircddbgateway service and
         #  leave the dashboard alone.
-        $SYSTEMCTL restart ircddbgatewayd.service
+        $SYSTEMCTL restart "$sysd_service"
     fi
     logmsg "Dashboard service restarted"
 }
