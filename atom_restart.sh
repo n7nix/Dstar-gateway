@@ -126,14 +126,14 @@ function wait_for_link() {
 
 function dashb_restart() {
     # Testing whether just restarting ircddgbgatewayd service works
-    sysd_service="ircnodedashboard.serviceq"
+    sysd_service="ircnodedashboard.service"
     # sysd_service="ircddbgatewayd.service"
     if [ -z "$DEBUG" ] ; then
         # Preference would be to only restart ircddbgateway service and
         #  leave the dashboard alone.
         $SYSTEMCTL restart "$sysd_service"
     fi
-    logmsg "Dashboard service restarted"
+    logmsg "$sysd_service restarted"
 }
 
 # ===== function wg_up
