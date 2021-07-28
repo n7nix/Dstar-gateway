@@ -99,7 +99,7 @@ function if_dn_up() {
         $IP link set $ETH_IF up
         logmsg "Ethernet interface: $ETH_IF, set UP"
     fi
-    logmsg "Ethernet interface: $ETH_IF, down up"
+    logmsg "Ethernet interface: $ETH_IF, down up complete"
 }
 
 # ===== function wait_for_link
@@ -140,6 +140,11 @@ function dashb_restart() {
 # Do a quick up on the wire guard interface
 
 function wg_up() {
+
+    wg_linkstat=$(ip link show $WG_IF up type wireguard)
+    wg_linkstat_ret="$?"
+    logmsg "DEBUG: wg_linkstat: $wg_linkstat, ret code: $wg_linkstat_ret"
+
     /usr/bin/wg-quick up "${WG_IF}"
     logmsg "Wire guard quick up"
 }
