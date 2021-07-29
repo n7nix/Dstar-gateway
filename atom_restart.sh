@@ -7,7 +7,7 @@
 # DEBUG=1
 
 scriptname="`basename $0`"
-VERSION="1.1"
+VERSION="1.2"
 local_log_dir=$HOME/log/
 local_log_file=$local_log_dir/logfile
 
@@ -260,7 +260,8 @@ done
             # break
         else
             logmsg "VPN connection after connection reset: FAILED"
-	    sleep 50
+            # Temporary DEBUG
+	    # sleep 50
 	fi
     else
         logmsg "VPN connection OK"
