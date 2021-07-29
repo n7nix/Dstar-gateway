@@ -144,9 +144,12 @@ function wg_up() {
     wg_linkstat=$(ip link show $WG_IF up type wireguard)
     wg_linkstat_ret="$?"
     logmsg "DEBUG: wg_linkstat: $wg_linkstat, ret code: $wg_linkstat_ret"
-
-    /usr/bin/wg-quick up "${WG_IF}"
-    logmsg "Wire guard quick up"
+    if [ $wg_linkstat_ret != 0 ] ; then
+        /usr/bin/wg-quick up "${WG_IF}"
+        logmsg "Wire Guard quick up"
+    else
+        logmsg "Wire Guard interface $WG_IF already UP"
+    fi
 }
 
 # ===== function usage
@@ -191,10 +194,11 @@ echo "$(date): Start from parent: $P_COMMAND"
 echo
 } | tee -a $local_log_file
 
+# Check if a lock file exists
 if [ -e "/tmp/atom_restart*" ] ; then
-    echo "Found atom restart tmp file: $(ls /tmp/atom_restart*)"
+    echo "Found atom restart lock file exiting: $(ls /tmp/atom_restart*)" | tee -a $local_log_file
     # debug only, remove
-#    rm /tmp/atom_restart*
+    exit 0
 fi
 
 # Make a temporary file with current time stamp
@@ -224,12 +228,12 @@ shift # past argument
 done
 
 # Temporary DEBUG
-while true ; do
+# while true ; do
 
     criteria_test
     criteria_test_ret=$?
     if [ $criteria_test_ret != 0 ] ; then
-        logmsg "VPN connection dropped"
+        logmsg "VPN connection DROPPED"
 
         wg_up
 	sleep 20
@@ -252,17 +256,22 @@ while true ; do
             logmsg "VPN connection after connection reset: UP"
 	    # Get rid of any semaphore files
             rm /tmp/atom_restart*
-            break
-
+            # Temporary DEBUG
+            # break
         else
             logmsg "VPN connection after connection reset: FAILED"
 	    sleep 50
 	fi
+    else
+        logmsg "VPN connection OK"
     fi
-    sleep 10
 
-done
+# Temporary DEBUG
+#    sleep 10
+# done
 
-logmsg "VPN connection has been reset, check logs"
+# remove lock file
+rm /tmp/atom_restart*
+# logmsg "VPN connection has been reset, check logs"
 
 exit 0
