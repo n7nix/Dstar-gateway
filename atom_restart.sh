@@ -156,10 +156,11 @@ function wg_up() {
 
 usage () {
 	(
-	echo "Usage: $scriptname [-d][-h]"
+	echo "Usage: $scriptname [-v][-d][-h]"
         echo "                  No args will restart dashboard & down/up Eth interface"
-        echo "  -d              Set DEBUG flag"
-        echo "  -h              Display this message."
+	echo "  -v | --version  Display version of this script & exit"
+        echo "  -d | --debug    Set DEBUG flag"
+        echo "  -h | --help     Display this message."
         echo
 	) 1>&2
 	exit 1
