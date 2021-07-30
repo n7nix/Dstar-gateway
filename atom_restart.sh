@@ -168,43 +168,6 @@ usage () {
 
 # ===== main
 
-# Check if running as root
-if [[ $EUID != 0 ]] ; then
-    SYSTEMCTL="sudo systemctl"
-    WG="sudo wg"
-    IP="sudo ip"
-    LOGGER="sudo logger"
-    echo "WARNING: if running from crontab need to run as root"
-fi
-
-# Get pid of parent process
-PPPID=$(ps h -o ppid= $PPID)
-# get name of parent process
-P_COMMAND=$(ps h -o %c $PPPID)
-
-# Check if local log directory exists.
-# Use this for debugging
-if [ ! -d "$local_log_dir" ] ; then
-   mkdir -p $local_log_dir
-fi
-
-{
-echo
-echo "$(date): Start from parent: $P_COMMAND"
-echo
-} | tee -a $local_log_file
-
-# Check if a lock file exists
-if [ -e "/tmp/atom_restart*" ] ; then
-    echo "Found atom restart lock file exiting: $(ls /tmp/atom_restart*)" | tee -a $local_log_file
-    # debug only, remove
-    exit 0
-fi
-
-# Make a temporary file with current time stamp
-tmpfile=$(mktemp /tmp/atom_restart.XXXXXX)
-echo "Called from $P_COMMAND at $(date)" >> $tmpfile
-
 while [[ $# -gt 0 ]] ; do
     APP_ARG="$1"
 
@@ -213,6 +176,11 @@ while [[ $# -gt 0 ]] ; do
              DEBUG=1
              echo "Set DEBUG flag"
         ;;
+	-v|--version)
+	    # Display Version & exit
+	    echo "${scriptname} ${VERSION}"
+	    exit 0
+	;;
         -h|--help|-?)
             usage
             exit 0
@@ -226,6 +194,43 @@ while [[ $# -gt 0 ]] ; do
 
 shift # past argument
 done
+
+# Check if running as root
+if [[ $EUID != 0 ]] ; then
+    SYSTEMCTL="sudo systemctl"
+    WG="sudo wg"
+    IP="sudo ip"
+    LOGGER="sudo logger"
+    echo "WARNING: if running from crontab need to run as root"
+fi
+
+# Get PID of parent process
+PPPID=$(ps h -o ppid= $PPID)
+# get name of parent process
+P_COMMAND=$(ps h -o %c $PPPID)
+
+# Check if local log directory exists.
+# Use this for debugging
+if [ ! -d "$local_log_dir" ] ; then
+   mkdir -p $local_log_dir
+fi
+
+# Display name of parent process
+{
+echo
+echo "$(date): Start from parent: $P_COMMAND"
+echo
+} | tee -a $local_log_file
+
+# Check if a lock file exists and exit script if it does
+if [ -e "/tmp/atom_restart*" ] ; then
+    echo "Found atom restart lock file exiting: $(ls /tmp/atom_restart*)" | tee -a $local_log_file
+    exit 0
+fi
+
+# Make a temporary file (lock file) with current time stamp
+tmpfile=$(mktemp /tmp/atom_restart.XXXXXX)
+echo "Called from $P_COMMAND at $(date)" >> $tmpfile
 
 # Temporary DEBUG
 # while true ; do
