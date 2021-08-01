@@ -294,14 +294,13 @@ echo "Called from $P_COMMAND at $(date)" >> $tmpfile
 	    fi
             # Temporary DEBUG
 	    # sleep 50
+
+            # Restarting the dashboard is superstitious behavior, probably should be commented out.
+            dashb_restart
 	fi
     else
         logmsg "VPN connection OK"
     fi
-
-    # Restarting the dashboard is superstitious behavior, probably should be commented out.
-    dashb_restart
-
 
 # Temporary DEBUG
 #    sleep 10
