@@ -7,7 +7,7 @@
 # DEBUG=1
 
 scriptname="`basename $0`"
-VERSION="1.2"
+VERSION="1.3"
 local_log_dir=$HOME/log/
 local_log_file=$local_log_dir/logfile
 
@@ -81,9 +81,15 @@ function criteria_test() {
 
     wg_test
     wg_test_ret=$?
+    if [ $wg_test_ret != 0 ] ; then
+        logmsg"DEBUG: criteria_test failed on WireGuard check"
+    fi
 
     ping_test
     ping_test_ret=$?
+    if [ $ping_test_ret != 0 ] ; then
+        logmsg"DEBUG: criteria_test failed on ping check"
+    fi
 
     return $(( ping_test_ret + wg_test_ret ))
 }
@@ -150,6 +156,26 @@ function wg_up() {
     else
         logmsg "Wire Guard interface $WG_IF already UP"
     fi
+}
+
+# ===== function reset_connection
+function reset_connection() {
+
+    wg_up
+    sleep 20
+
+    if_dn_up
+    sleep 5
+
+    # Wait until link is back up
+    wait_for_link
+    if [ "$?" != 0 ] ; then
+        logmsg "Timeout waiting for link on interface: $ETH_IF"
+    fi
+
+    criteria_test
+    criteria_test_ret=$?
+    return $criteria_test_ret
 }
 
 # ===== function usage
@@ -241,22 +267,7 @@ echo "Called from $P_COMMAND at $(date)" >> $tmpfile
     if [ $criteria_test_ret != 0 ] ; then
         logmsg "VPN connection DROPPED"
 
-        wg_up
-	sleep 20
-
-        if_dn_up
-	sleep 5
-
-	# Wait until link is back up
-        wait_for_link
-	if [ "$?" != 0 ] ; then
-            logmsg "Timeout waiting for link on interface: $ETH_IF"
-	fi
-
-        dashb_restart
-	sleep 5
-
-        criteria_test
+	reset_connection
         criteria_test_ret=$?
         if [ $criteria_test_ret == 0 ] ; then
             logmsg "VPN connection after connection reset: UP"
@@ -266,12 +277,31 @@ echo "Called from $P_COMMAND at $(date)" >> $tmpfile
             # break
         else
             logmsg "VPN connection after connection reset: FAILED"
+	    sleep_parm=40
+	    sleep $sleep_parm
+	    loopcnt=0
+	    while [ $criteria_test_ret != 0 ] && (( loopcnt < 10 )) ; do
+	        reset_connection
+		criteria_test_ret=$?
+		((loopcnt++))
+		sleep_parm=$((sleep_parm + 10))
+	        sleep $sleep_parm
+	    done
+            if [ $criteria_test_ret == 0 ] ; then
+                logmsg "VPN connection after RETRY: UP after $loopcnt attempts"
+	    else
+                logmsg "VPN connection after RETRY: FAILED after $loopcnt attempts"
+	    fi
             # Temporary DEBUG
 	    # sleep 50
 	fi
     else
         logmsg "VPN connection OK"
     fi
+
+    # Restarting the dashboard is superstitious behavior, probably should be commented out.
+    dashb_restart
+
 
 # Temporary DEBUG
 #    sleep 10
