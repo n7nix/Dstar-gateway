@@ -79,12 +79,14 @@ function wg_test() {
 
 function criteria_test() {
 
+    # Verify the WireGuard interface with 'wg show' command
     wg_test
     wg_test_ret=$?
     if [ $wg_test_ret != 0 ] ; then
         logmsg"DEBUG: criteria_test failed on WireGuard check"
     fi
 
+    # Verify the WireGuard interface with 'ping'
     ping_test
     ping_test_ret=$?
     if [ $ping_test_ret != 0 ] ; then
