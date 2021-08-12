@@ -328,7 +328,7 @@ if [ "$bCONNECTION_LOOP" = "true" ] ; then
         sleep 10
     done
 else
-    connection _test_oneshot
+    connection_test_oneshot
 fi
 
 # remove lock file
