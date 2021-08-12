@@ -27,7 +27,7 @@ function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 # Put message in a local file as well as syslog
 
 function logmsg() {
-    if [ ! -z "$DEUBG" ] ; then
+    if [ ! -z "$DEBUGG" ] ; then
         echo "${1}"
     fi
     "${LOGGER}" -t "${scriptname}(${VERSION})" -i -p daemon.info -s "${1}" >> $local_log_file 2>&1
@@ -227,7 +227,7 @@ function connection_test_oneshot() {
             dashb_restart
 	fi
     else
-        if [ ! -z "$DEUBG" ] ; then
+        if [ ! -z "$DEBUG" ] ; then
             logmsg "VPN connection OK"
 	fi
     fi
