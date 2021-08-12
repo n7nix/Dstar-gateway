@@ -7,7 +7,7 @@
 # DEBUG=1
 
 scriptname="`basename $0`"
-VERSION="1.3"
+VERSION="1.4"
 local_log_dir=$HOME/log/
 local_log_file=$local_log_dir/logfile
 
@@ -18,6 +18,8 @@ SYSTEMCTL="systemctl"
 WG="wg"
 IP="ip"
 LOGGER="/usr/bin/logger"
+
+bCONNECTION_LOOP="false"
 
 function dbgecho { if [ ! -z "$DEBUG" ] ; then echo "$*"; fi }
 
@@ -125,7 +127,7 @@ function wait_for_link() {
     if [ "$link_state" = "UP" ] ; then
         retcode=0
     else
-	logmsg "DEBUG: Link not UP after ((SECONDS-begin_sec)) seconds: $(ip link show $ETH_IF)"
+	logmsg "DEBUG: Link not UP after $((SECONDS-begin_sec)) seconds: $(ip link show $ETH_IF)"
     fi
     return $retcode
 }
@@ -167,7 +169,7 @@ function reset_connection() {
     sleep 20
 
     if_dn_up
-    sleep 5
+    sleep 10
 
     # Wait until link is back up
     wait_for_link
@@ -180,6 +182,55 @@ function reset_connection() {
     return $criteria_test_ret
 }
 
+# ===== function connetion_test_oneshot
+
+function connection_test_oneshot() {
+
+    criteria_test
+    criteria_test_ret=$?
+    if [ $criteria_test_ret != 0 ] ; then
+        logmsg "VPN connection DROPPED during $connection_str"
+
+	reset_connection
+        criteria_test_ret=$?
+        if [ $criteria_test_ret == 0 ] ; then
+            logmsg "VPN connection after connection reset: UP"
+	    # Get rid of any semaphore files
+            rm /tmp/atom_restart*
+            # Temporary DEBUG
+            # break
+        else
+            logmsg "VPN connection after connection reset: FAILED"
+	    sleep_parm=40
+	    sleep $sleep_parm
+	    loopcnt=0
+	    while [ $criteria_test_ret != 0 ] && (( loopcnt < 12 )) ; do
+	        reset_connection
+		criteria_test_ret=$?
+		((loopcnt++))
+		sleep_parm=$((sleep_parm + 10))
+	        sleep $sleep_parm
+	    done
+            if [ $criteria_test_ret == 0 ] ; then
+                logmsg "VPN connection after RETRY: UP after $loopcnt attempts"
+	    else
+                logmsg "VPN connection after RETRY: FAILED after $loopcnt attempts"
+	    fi
+            # Temporary
+	    sleep $sleep_after_failure
+
+            # Restarting the dashboard is superstitious behavior, probably should be commented out.
+            dashb_restart
+	fi
+    else
+        if [ ! -z $DEUBG ] ; then
+            logmsg "VPN connection OK"
+	fi
+    fi
+
+
+}
+
 # ===== function usage
 
 usage () {
@@ -187,6 +238,7 @@ usage () {
 	echo "Usage: $scriptname [-v][-d][-h]"
         echo "                  No args will restart dashboard & down/up Eth interface"
 	echo "  -v | --version  Display version of this script & exit"
+	echo "  -l | --loop     Set continuous LOOP flag"
         echo "  -d | --debug    Set DEBUG flag"
         echo "  -h | --help     Display this message."
         echo
@@ -201,6 +253,10 @@ while [[ $# -gt 0 ]] ; do
     APP_ARG="$1"
 
     case $APP_ARG in
+        -l|--loop)   # set continuous loop flag
+             bCONNECTION_LOOP="true"
+             echo "Set LOOP flag"
+        ;;
         -d|--debug)   # set DEBUG flag
              DEBUG=1
              echo "Set DEBUG flag"
@@ -261,52 +317,19 @@ fi
 tmpfile=$(mktemp /tmp/atom_restart.XXXXXX)
 echo "Called from $P_COMMAND at $(date)" >> $tmpfile
 
-# Temporary DEBUG
-# while true ; do
+sleep_after_failure=40
+connection_str="ONESHOT"
 
-    criteria_test
-    criteria_test_ret=$?
-    if [ $criteria_test_ret != 0 ] ; then
-        logmsg "VPN connection DROPPED"
-
-	reset_connection
-        criteria_test_ret=$?
-        if [ $criteria_test_ret == 0 ] ; then
-            logmsg "VPN connection after connection reset: UP"
-	    # Get rid of any semaphore files
-            rm /tmp/atom_restart*
-            # Temporary DEBUG
-            # break
-        else
-            logmsg "VPN connection after connection reset: FAILED"
-	    sleep_parm=40
-	    sleep $sleep_parm
-	    loopcnt=0
-	    while [ $criteria_test_ret != 0 ] && (( loopcnt < 10 )) ; do
-	        reset_connection
-		criteria_test_ret=$?
-		((loopcnt++))
-		sleep_parm=$((sleep_parm + 10))
-	        sleep $sleep_parm
-	    done
-            if [ $criteria_test_ret == 0 ] ; then
-                logmsg "VPN connection after RETRY: UP after $loopcnt attempts"
-	    else
-                logmsg "VPN connection after RETRY: FAILED after $loopcnt attempts"
-	    fi
-            # Temporary DEBUG
-	    # sleep 50
-
-            # Restarting the dashboard is superstitious behavior, probably should be commented out.
-            dashb_restart
-	fi
-    else
-        logmsg "VPN connection OK"
-    fi
-
-# Temporary DEBUG
-#    sleep 10
-# done
+if [ "$bCONNECTION_LOOP" = "true" ] ; then
+    # Do continuous loop
+    connection_str="LOOP"
+    while true ; do
+        connection_test_oneshot
+        sleep 10
+    done
+else
+    connection _test_oneshot
+fi
 
 # remove lock file
 rm /tmp/atom_restart*
