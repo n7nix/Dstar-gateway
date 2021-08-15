@@ -96,7 +96,7 @@ function criteria_test() {
     ping_test
     ping_test_ret=$?
     if [ $ping_test_ret != 0 ] ; then
-        logmsg"DEBUG: criteria_test failed on ping check"
+        logmsg "DEBUG: criteria_test failed on ping check"
     fi
 
     return $(( ping_test_ret + wg_test_ret ))
