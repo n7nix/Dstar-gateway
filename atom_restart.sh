@@ -307,9 +307,12 @@ if [[ $EUID != 0 ]] ; then
 fi
 
 # Get PID of parent process
-PPPID=$(ps h -o ppid= $PPID)
+PPPID=$(ps h -o ppid=$PPID)
 logmsg "DEBUG: PPPID=$PPPID, PPID=$PPID"
 
+if (( $PPPID = 0 )) ; then
+    PPPID=1
+fi
 # get name of parent process
 P_COMMAND=$(ps h -o %c $PPPID)
 logmsg "DEBUG: P_COMMAND=$PCOMMAND"
