@@ -1,0 +1,9 @@
+[Unit]
+Description=Timer for checking Wire Guard connection
+
+[Timer]
+OnUnitInactiveSec=10s
+OnBootSec=50s
+
+[Install]
+WantedBy=timers.target
