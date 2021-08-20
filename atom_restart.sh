@@ -10,7 +10,7 @@ scriptname="`basename $0`"
 VERSION="1.5"
 home_ip="207.32.162.17"
 wgtest_ip="192.168.99.1"
-LTE_router_ip="192.168.1.108"
+LTE_router_ip="192.168.1.254"
 
 local_log_dir=$HOME/log/
 local_log_file=$local_log_dir/logfile
