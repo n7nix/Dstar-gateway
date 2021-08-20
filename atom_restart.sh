@@ -40,7 +40,7 @@ function logmsg() {
 # ===== function ping_test_home
 
 function ping_test_home() {
-    /usr/bin/ping -c3 -q "$home_ip"
+    /usr/bin/ping -c3 -q "$home_ip" > /dev/null
     if [ $? != 0 ]; then
         logmsg "Failed ping test to home IP"
     fi
@@ -308,8 +308,11 @@ fi
 
 # Get PID of parent process
 PPPID=$(ps h -o ppid= $PPID)
+logmsg "DEBUG: PPPID=$PPPID, PPID=$PPID"
+
 # get name of parent process
 P_COMMAND=$(ps h -o %c $PPPID)
+logmsg "DEBUG: P_COMMAND=$PCOMMAND"
 
 # Check if local log directory exists.
 # Use this for debugging
