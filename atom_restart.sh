@@ -10,6 +10,7 @@ scriptname="`basename $0`"
 VERSION="1.5"
 home_ip="207.32.162.17"
 wgtest_ip="192.168.99.1"
+LTE_router_ip="192.168.1.108"
 
 local_log_dir=$HOME/log/
 local_log_file=$local_log_dir/logfile
@@ -43,6 +44,15 @@ function ping_test_home() {
     /usr/bin/ping -c3 -q "$home_ip" > /dev/null
     if [ $? != 0 ]; then
         logmsg "Failed ping test to home IP"
+    fi
+}
+
+# ===== function ping_test_LTE_router
+
+function ping_test_LTE_router() {
+    /usr/bin/ping -I enp4s0 -c3 -q "$LTE_router_ip" > /dev/null
+    if [ $? != 0 ]; then
+        logmsg "Failed ping test to LTE router IP"
     fi
 }
 
@@ -202,6 +212,7 @@ function reset_connection() {
 
 function connection_test_oneshot() {
 
+    ping_test_LTE_router
     ping_test_home
     criteria_test
     criteria_test_ret=$?
