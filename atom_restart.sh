@@ -7,7 +7,10 @@
 # DEBUG=1
 
 scriptname="`basename $0`"
-VERSION="1.4"
+VERSION="1.5"
+home_ip="207.32.162.17"
+wgtest_ip="192.168.99.1"
+
 local_log_dir=$HOME/log/
 local_log_file=$local_log_dir/logfile
 
@@ -34,10 +37,19 @@ function logmsg() {
 
 }
 
+# ===== function ping_test_home
+
+function ping_test_home() {
+    /usr/bin/ping -c3 -q "$home_ip"
+    if [ $? != 0 ]; then
+        logmsg "Failed ping test to home IP"
+    fi
+}
+
 # ===== function ping_test
 
 function ping_test() {
-    /usr/bin/ping -I $WG_IF -c 1 -W 1 -q 192.168.99.1 > /dev/null
+    /usr/bin/ping -I $WG_IF -c 1 -W 1 -q "$wgtest_ip" > /dev/null
     return $?
 }
 
@@ -89,14 +101,14 @@ function criteria_test() {
     wg_test
     wg_test_ret=$?
     if [ $wg_test_ret != 0 ] ; then
-        logmsg"DEBUG: criteria_test failed on WireGuard check"
+        logmsg"DEBUG: ${FUNCNAME[0]} failed on WireGuard check"
     fi
 
     # Verify the WireGuard interface with 'ping'
     ping_test
     ping_test_ret=$?
     if [ $ping_test_ret != 0 ] ; then
-        logmsg "DEBUG: criteria_test failed on ping check"
+        logmsg "DEBUG: ${FUNCNAME[0]} failed on ping check"
     fi
 
     return $(( ping_test_ret + wg_test_ret ))
@@ -190,6 +202,7 @@ function reset_connection() {
 
 function connection_test_oneshot() {
 
+    ping_test_home
     criteria_test
     criteria_test_ret=$?
     if [ $criteria_test_ret != 0 ] ; then
