@@ -2,7 +2,7 @@
 Description=Timer for checking Wire Guard connection
 
 [Timer]
-OnUnitInactiveSec=10s
+OnUnitInactiveSec=15s
 OnBootSec=50s
 
 [Install]
