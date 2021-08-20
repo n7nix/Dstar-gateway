@@ -9,5 +9,5 @@ ExecStart=/usr/local/bin/atom_restart.sh
 Restart=on-failure
 RestartSec=30
 SyslogIdentifier="Atom Connection Check"
-StandardOutput=syslog
-StandardError=syslog
+StandardOutput=journal
+StandardError=journal
