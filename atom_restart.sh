@@ -323,12 +323,14 @@ if [ ! -d "$local_log_dir" ] ; then
    mkdir -p $local_log_dir
 fi
 
-# Display name of parent process
-{
-echo
-echo "$(date): Start from parent: $P_COMMAND"
-echo
-} | tee -a $local_log_file
+if [ "$P_COMMAND" != "systemd" ] ; then
+    # Display name of parent process
+    {
+    echo
+    echo "$(date): Start from parent: $P_COMMAND"
+    echo
+    } | tee -a $local_log_file
+fi
 
 # Check if a lock file exists and exit script if it does
 if [ -e "/tmp/atom_restart*" ] ; then
