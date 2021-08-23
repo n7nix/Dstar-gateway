@@ -56,6 +56,10 @@ if [ $bsystemd_timer != "false" ] ; then
     service="atom_connection.timer"
 else
     service="atom_connection.service"
+    systemctl enable $service
+    if [ "$?" -ne 0 ] ; then
+        echo "Problem ENABLING $service"
+    fi
 fi
 
 echo "Restarting $service"
@@ -70,5 +74,5 @@ echo
 systemctl --no-pager status "atom_connection.*"
 
 echo
-ps aux | grep -i "atom_connection*"
+ps aux | grep -i "atom_restart*"
 
