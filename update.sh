@@ -18,6 +18,8 @@ if [[ $EUID != 0 ]] ; then
    exit 1
 fi
 
+echo "==== atom connection check update: start system timer: $bsystemd_timer"
+
 cp atom_restart.sh /usr/local/bin
 cp atom_connection.service /etc/systemd/system
 
@@ -25,7 +27,18 @@ cp atom_connection.service /etc/systemd/system
 systemd_timer_file="/etc/systemd/system/atom_connection.timer"
 
 if [ $bsystemd_timer == "false" ] ; then
-    if [ -e "$sytemd_timer_file" ] ; then
+    if [ -e "$systemd_timer_file" ] ; then
+        service="atom_connection.timer"
+
+        systemctl stop $service
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem STOPPING $service"
+        fi
+
+        systemctl disable $service
+        if [ "$?" -ne 0 ] ; then
+            echo "Problem DISABLING $service"
+        fi
         mv $systemd_timer_file /tmp
     fi
 else
@@ -35,10 +48,12 @@ fi
 # All files copied, restart everything
 
 systemctl daemon-reload
+echo "Restarting atom_connection.timer"
 systemctl restart atom_connection.service
 
 # restart timer if boolean is true
 if [ $bsystemd_timer != "false" ] ; then
+    echo "Restarting atom_connection.timer"
     systemctl restart atom_connection.timer
 fi
 
