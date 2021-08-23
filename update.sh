@@ -53,11 +53,22 @@ systemctl restart atom_connection.service
 
 # restart timer if boolean is true
 if [ $bsystemd_timer != "false" ] ; then
-    echo "Restarting atom_connection.timer"
-    systemctl restart atom_connection.timer
+    service="atom_connection.timer"
+else
+    service="atom_connection.service"
+fi
+
+echo "Restarting $service"
+systemctl restart $service
+if [ "$?" -ne 0 ] ; then
+    echo "Problem RESTARTING $service"
 fi
 
 echo
 echo "=== status after update"
 echo
 systemctl --no-pager status "atom_connection.*"
+
+echo
+ps aux | grep -i "atom_connection*"
+
