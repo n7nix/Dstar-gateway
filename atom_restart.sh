@@ -125,13 +125,21 @@ function criteria_test() {
 }
 
 # ===== function if_dn_up
-# Take the Ethernet connection down then back up
+# Take the Ethernet connection down, pause, then back up
 
 function if_dn_up() {
     if [ -z "$DEBUG" ] ; then
         $IP link set $ETH_IF down
         logmsg "Ethernet interface: $ETH_IF, set DOWN"
-        sleep 15
+        # to converge on an answer use an exponential scheme?
+        # - 1 minute
+        # - 2 minutes
+        # - 4 minutes
+        # - 8 minutes
+        # - 16 minutes
+	# Initially was only 15 seconds
+        sleep 60  # Sleep after setting Eth connection down
+
         $IP link set $ETH_IF up
         logmsg "Ethernet interface: $ETH_IF, set UP"
     fi
@@ -192,10 +200,10 @@ function wg_up() {
 function reset_connection() {
 
     wg_up
-    sleep 20
+    sleep 20  # sleep after WireGuard up
 
     if_dn_up
-    sleep 10
+    sleep 10  # sleep after WireGuard down
 
     # Wait until link is back up
     wait_for_link
@@ -229,8 +237,8 @@ function connection_test_oneshot() {
             # break
         else
             logmsg "VPN connection after connection reset: FAILED"
-	    sleep_parm=40
-	    sleep $sleep_parm
+	    sleep_parm=40      # Sleep after VPN connection failure
+	    sleep $sleep_parm# # Sleep after VPN connection failure
 	    loopcnt=0
 	    while [ $criteria_test_ret != 0 ] && (( loopcnt < 12 )) ; do
 	        reset_connection
@@ -283,11 +291,11 @@ while [[ $# -gt 0 ]] ; do
     case $APP_ARG in
         -l|--loop)   # set continuous loop flag
              bCONNECTION_LOOP="true"
-             echo "Set LOOP flag"
+             echo "$(date): Set LOOP flag"
         ;;
         -d|--debug)   # set DEBUG flag
              DEBUG=1
-             echo "Set DEBUG flag"
+             echo "$(date): Set DEBUG flag"
         ;;
 	-v|--version)
 	    # Display Version & exit
@@ -299,7 +307,7 @@ while [[ $# -gt 0 ]] ; do
             exit 0
         ;;
         *)
-           echo "Unrecognized command line argument: $APP_ARG"
+           echo "$(date): Unrecognized command line argument: $APP_ARG"
            usage
            exit 0
        ;;
