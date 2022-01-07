@@ -48,20 +48,26 @@ fi
 # All files copied, restart everything
 
 systemctl daemon-reload
-echo "Restarting atom_connection.timer"
-systemctl restart atom_connection.service
 
+# Set service name to enable & restart
 # restart timer if boolean is true
 if [ $bsystemd_timer != "false" ] ; then
     service="atom_connection.timer"
 else
     service="atom_connection.service"
+fi
+
+# Enable service
+systemctl is-enabled "$service" > /dev/null 2>&1
+if [ $? -ne 0 ] ; then
+    echo "Enabling $service"
     systemctl enable $service
     if [ "$?" -ne 0 ] ; then
         echo "Problem ENABLING $service"
     fi
 fi
 
+# Start service
 echo "Restarting $service"
 systemctl restart $service
 if [ "$?" -ne 0 ] ; then
