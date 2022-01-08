@@ -4,7 +4,7 @@
 #
 # Check if the VPN connection is still working and if not restart Eth
 # interface & DStar dashboard.
-# DEBUG=1
+DEBUG=
 
 scriptname="`basename $0`"
 VERSION="1.5"
@@ -138,7 +138,7 @@ function if_dn_up() {
         # - 8 minutes
         # - 16 minutes
 	# Initially was only 15 seconds
-        sleep 60  # Sleep after setting Eth connection down
+        sleep 2m  # Sleep after setting Eth connection down
 
         $IP link set $ETH_IF up
         logmsg "Ethernet interface: $ETH_IF, set UP"
