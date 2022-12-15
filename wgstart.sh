@@ -9,7 +9,7 @@ local_log_file="$local_log_dir/wg_log.txt"
 sys_log="/var/log/syslog"
 
 
-# ===== fucnction test_log
+# ===== function test_log
 # Test logging to multiple files
 msg_log() {
     if [ ! -d "$local_log_dir" ] ; then
